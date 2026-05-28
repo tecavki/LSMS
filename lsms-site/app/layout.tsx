@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Los Santos Medical Service Personel Yönetim Sistemi',
 };
 
+import RouteGuard from '../components/RouteGuard';
+
 export default function RootLayout({
   children,
 }: {
