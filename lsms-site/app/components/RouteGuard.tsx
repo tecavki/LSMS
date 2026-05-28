@@ -1,32 +1,23 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    // Sadece /admin ile başlayan sayfaları kilit altına al
-    if (pathname.startsWith('/admin')) {
-      const role = localStorage.getItem('lsms_role');
-      
-      if (role !== 'admin') {
-        alert("Erişim yetkiniz yok, ana sayfaya yönlendiriliyorsunuz.");
-        router.push('/');
-      } else {
-        setIsAuthorized(true);
-      }
+    // Sadece tarayıcıda çalışması için basit bir kontrol
+    const role = localStorage.getItem('lsms_role');
+    if (role !== 'admin') {
+      router.push('/');
     } else {
-      // Admin dışı sayfalar (ana sayfa, profil vb.) serbest
-      setIsAuthorized(true);
+      setAuthorized(true);
     }
-  }, [pathname, router]);
+  }, [router]);
 
-  // Henüz kontrol aşamasındaysa veya admin değilse beyaz ekran yerine boş bir şey dön
-  if (!isAuthorized && pathname.startsWith('/admin')) {
-    return null; 
+  if (!authorized) {
+    return <div className="p-8 text-white">Güvenlik kontrolü yapılıyor...</div>;
   }
 
   return <>{children}</>;
