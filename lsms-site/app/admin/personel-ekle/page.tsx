@@ -1,145 +1,100 @@
 'use client';
+
 import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function PersonelEkle() {
-  const router = useRouter();
-  
   const [formData, setFormData] = useState({
-    name: '',
-    code: '',
-    rank: 'Stajyer Doktor',
-    password: '' 
+    isim: '',
+    rutbe: '',
+    departman: '',
   });
-
-  const [loading, setLoading] = useState(false);
   const [mesaj, setMesaj] = useState('');
-  const [hata, setHata] = useState('');
-
-  // 🚀 ŞİFRE ÜRETİCİ FONKSİYON
-  const generateKey = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Okunması kolay karakterler
-    let key = 'LSMS-';
-    for (let i = 0; i < 6; i++) {
-      key += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setFormData({...formData, password: key});
-  };
-
-  // 🚀 KOPYALAMA FONKSİYONU
-  const copyToClipboard = () => {
-    if (formData.password) {
-      navigator.clipboard.writeText(formData.password);
-      alert("Şifre panoya kopyalandı!");
-    } else {
-      alert("Önce şifre üretmelisin!");
-    }
-  };
+  const [yukleniyor, setYukleniyor] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setYukleniyor(true);
     setMesaj('');
-    setHata('');
 
     try {
-      const res = await fetch('/api/personel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      // Az önce düzelttiğimiz 404 vermeyen API yolu
+     const res = await fetch('/api/personel-ekle', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+});
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Personel eklenemedi!');
-
-      setMesaj('✅ Personel başarıyla sisteme eklendi!');
-      setFormData({ name: '', code: '', rank: 'Stajyer Doktor', password: '' });
-      setTimeout(() => router.push('/admin/personel'), 1500);
-
-    } catch (err: any) {
-      setHata('❌ Hata: ' + err.message);
+      if (res.ok) {
+        setMesaj('✅ Personel başarıyla sisteme eklendi!');
+        setFormData({ isim: '', rutbe: '', departman: '' }); // Formu temizle
+      } else {
+        setMesaj('❌ Personel eklenirken bir hata oluştu.');
+      }
+    } catch (error) {
+      setMesaj('❌ Sunucuya ulaşılamadı.');
     } finally {
-      setLoading(false);
+      setYukleniyor(false);
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 animate-fade-in p-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Yeni Personel Kaydı</h1>
-        <p className="text-zinc-400 mt-2">Ekibe yeni bir üye eklerken otomatik şifre oluşturun.</p>
-      </div>
-
-      <div className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-2xl shadow-xl">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">İsim Soyisim</label>
-            <input 
-              type="text" required placeholder="John Doe"
-              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-red-500 outline-none"
-              value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Rozet No</label>
-            <input 
-              type="text" required placeholder="104"
-              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-red-500 outline-none"
-              value={formData.code} onChange={(e) => setFormData({...formData, code: e.target.value})}
-            />
-          </div>
-
-          {/* 🚀 ŞİFRE ÜRETİCİ ALANI */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Sistem Giriş Key</label>
-            <div className="flex gap-2">
-              <input 
-                type="text" required placeholder="Şifre üret butonuna bas..."
-                className="flex-1 bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-red-500 outline-none font-mono"
-                value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-              <button type="button" onClick={generateKey} className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg transition-all">
-                🔄
-              </button>
-              <button type="button" onClick={copyToClipboard} className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-2 rounded-lg transition-all">
-                📋
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-1">Rütbe</label>
-            <select 
-              className="w-full bg-black border border-zinc-700 rounded-lg p-3 text-white focus:border-red-500 outline-none"
-              value={formData.rank} onChange={(e) => setFormData({...formData, rank: e.target.value})}
-            >
-              <option>Stajyer Doktor</option>
-              <option>Pratisyen Doktor</option>
-              <option>Uzman Doktor</option>
-              <option>Başhekim</option>
-            </select>
-          </div>
-
-          {mesaj && <div className="p-3 bg-green-900/30 border border-green-800 text-green-400 rounded-lg text-sm">{mesaj}</div>}
-          {hata && <div className="p-3 bg-red-900/30 border border-red-800 text-red-400 rounded-lg text-sm">{hata}</div>}
-
-          <button 
-            type="submit" disabled={loading}
-            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-all"
-          >
-            {loading ? "Kaydediliyor..." : "Personeli Kaydet"}
-          </button>
-        </form>
-      </div>
+    <div className="p-8 max-w-2xl mx-auto text-white">
+      <h1 className="text-3xl font-bold mb-6 text-red-500 border-b border-red-500 pb-2">
+        LSMS Yeni Personel Kaydı
+      </h1>
       
-      <div className="mt-6 text-center">
-        <Link href="/admin/personel" className="text-zinc-500 hover:text-white text-sm">
-          ← Personel Listesine Dön
-        </Link>
-      </div>
+      <form onSubmit={handleSubmit} className="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col gap-4">
+        
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-300">İsim Soyisim</label>
+          <input 
+            type="text" 
+            required 
+            value={formData.isim}
+            onChange={(e) => setFormData({ ...formData, isim: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-red-500"
+            placeholder="Örn: Teco Shine"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-300">Rütbe / Ünvan</label>
+          <input 
+            type="text" 
+            required 
+            value={formData.rutbe}
+            onChange={(e) => setFormData({ ...formData, rutbe: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-red-500"
+            placeholder="Örn: Chief of Medicine"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-300">Departman</label>
+          <input 
+            type="text" 
+            required 
+            value={formData.departman}
+            onChange={(e) => setFormData({ ...formData, departman: e.target.value })}
+            className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-red-500"
+            placeholder="Örn: Cerrahi"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={yukleniyor}
+          className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition duration-200 disabled:opacity-50"
+        >
+          {yukleniyor ? 'Sisteme İşleniyor...' : 'Personeli Kaydet'}
+        </button>
+
+        {mesaj && (
+          <div className={`mt-4 p-3 rounded text-center ${mesaj.includes('✅') ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'}`}>
+            {mesaj}
+          </div>
+        )}
+      </form>
     </div>
   );
 }
