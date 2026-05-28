@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation'; 
 
 // 🚀 YOL HATASI ÇÖZÜLDÜ: app/admin içinden components'e gitmek için sadece ../../ yeterlidir!
-import RouteGuard from '../../components/RouteGuard'; 
+import RouteGuard from '@/components/RouteGuard';
 
 export default function AdminLayout({
   children,
